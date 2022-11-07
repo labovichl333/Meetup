@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    container_name: postgres
+    image: postgres:14.1-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: modsen
+      PGUSER: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+
+  meetup:
+    container_name: meetup
+    build:
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - SERVER_PORT=8000
+      - DB_URL=jdbc:postgresql://postgres/modsen
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+
+    ports:
+      - '8000:8000'
